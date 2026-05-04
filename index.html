@@ -1,0 +1,663 @@
+
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@700;800;900&family=Noto+Sans+SC:wght@400;700;900&display=swap');
+*{box-sizing:border-box;margin:0;padding:0;}
+:root{--mp:#7C3AED;--my:#F59E0B;--sb:#0EA5E9;--mint:#10B981;--hp:#EC4899;--danger:#EF4444;--bg1:#0F0A1E;--bg2:#1A1135;--tb:#F1F0FF;--tm:#A89BC2;}
+body{background:#F3F0FA;font-family:'Nunito','Noto Sans SC',sans-serif;}
+
+#app{max-width:390px;height:700px;min-height:700px;max-height:700px;margin:0 auto;background:var(--bg1);position:relative;display:flex;flex-direction:column;overflow:hidden;border-radius:28px;box-shadow:0 30px 80px rgba(124,58,237,.45),0 8px 32px rgba(0,0,0,.5);}
+.screen{display:none;flex:1;flex-direction:column;overflow:hidden;min-height:0;}
+.screen.active{display:flex;}
+.screen-scroll{overflow-y:auto;flex:1;min-height:0;}
+.stars-bg{position:absolute;inset:0;pointer-events:none;overflow:hidden;z-index:0;}
+.star{position:absolute;background:white;border-radius:50%;animation:twinkle 3s infinite;}
+@keyframes twinkle{0%,100%{opacity:.15;transform:scale(1)}50%{opacity:.8;transform:scale(1.4)}}
+
+.btn{width:100%;padding:14px;border-radius:16px;background-color:#ffffff !important;color:#000000 !important;font-family:'Nunito','Noto Sans SC',sans-serif;font-size:16px;font-weight:900;border:2px solid #000000 !important;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;transition:background-color .28s ease,color .28s ease,transform .14s;text-align:center;}
+.btn:hover{background-color:#000000 !important;color:#ffffff !important;}
+.btn:active{transform:scale(.97);}
+.btn.ghost{background-color:transparent !important;color:rgba(255,255,255,.45) !important;border:1.5px solid rgba(255,255,255,.18) !important;font-size:13px;padding:10px 14px;border-radius:13px;}
+.btn.ghost:hover{background-color:rgba(255,255,255,.07) !important;color:rgba(255,255,255,.72) !important;border-color:rgba(255,255,255,.32) !important;}
+.btn.sm{padding:10px 14px;font-size:14px;border-radius:13px;}
+.btn.collected{background-color:#10B981 !important;color:#fff !important;border-color:#10B981 !important;cursor:default;}
+.btn.collected:hover{background-color:#10B981 !important;color:#fff !important;}
+
+/* XP STRIP */
+.xp-strip{position:relative;z-index:10;padding:8px 16px 6px;background:rgba(15,10,30,.92);border-bottom:1px solid rgba(124,58,237,.22);flex-shrink:0;}
+.xp-row{display:flex;align-items:center;gap:10px;}
+.xp-avatar{width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,#7C3AED,#A855F7);display:flex;align-items:center;justify-content:center;font-size:16px;border:2px solid rgba(245,158,11,.5);flex-shrink:0;}
+.xp-info{flex:1;min-width:0;}
+.xp-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;}
+.xp-level{font-size:12px;font-weight:900;color:var(--my);}
+.xp-pts{font-size:11px;color:var(--tm);}
+.xp-track{height:6px;background:rgba(255,255,255,.1);border-radius:3px;overflow:hidden;}
+.xp-fill{height:100%;border-radius:3px;background:linear-gradient(90deg,var(--mp),var(--my));transition:width 1.2s cubic-bezier(.25,.46,.45,.94);}
+.xp-medals{display:flex;gap:4px;margin-left:4px;}
+.medal{font-size:16px;}
+
+/* ── SCANNER — flex column, centre content pushes recent-finds to bottom ── */
+#screen-scan{
+  background:radial-gradient(ellipse at 50% 35%,#2D1B5E,var(--bg1) 70%);
+  padding-bottom:68px;   /* nav height */
+  flex-direction:column;
+}
+.scan-main{
+  flex:1;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;  /* vertically centres the title + ring */
+  gap:0;
+  padding:0 24px;
+  position:relative;
+  z-index:1;
+}
+.scan-title{font-size:20px;font-weight:900;color:var(--tb);text-align:center;line-height:1.4;margin-bottom:8px;}
+.scan-hint-text{font-size:12px;color:var(--tm);text-align:center;margin-bottom:32px;}
+.scan-ring-outer{width:210px;height:210px;border-radius:50%;background:radial-gradient(circle,rgba(124,58,237,.12),rgba(124,58,237,.02) 70%);border:2px solid rgba(124,58,237,.25);display:flex;align-items:center;justify-content:center;animation:pulse-ring 2.5s ease-in-out infinite;}
+@keyframes pulse-ring{0%,100%{box-shadow:0 0 0 0 rgba(124,58,237,.4),0 0 0 12px rgba(124,58,237,.12)}50%{box-shadow:0 0 0 18px rgba(124,58,237,.18),0 0 0 36px rgba(124,58,237,.04)}}
+.scan-btn{width:160px;height:160px;border-radius:50%;background:linear-gradient(135deg,#5B21B6,#7C3AED,#A855F7);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:transform .15s;box-shadow:0 8px 32px rgba(124,58,237,.6);}
+.scan-btn:hover{transform:scale(1.06)}.scan-btn:active{transform:scale(.96)}
+.scan-icon{font-size:52px;}
+.scan-tap-hint{font-size:12px;color:var(--tm);margin-top:20px;text-align:center;}
+
+/* Recent finds — pinned to bottom above nav */
+.recent-finds{
+  flex-shrink:0;
+  padding:10px 16px 12px;
+  z-index:1;
+}
+.recent-label{font-size:11px;color:var(--tm);margin-bottom:8px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;}
+.chips{display:flex;gap:8px;flex-wrap:wrap;}
+.chip{background:rgba(124,58,237,.2);border:1px solid rgba(124,58,237,.3);border-radius:20px;padding:4px 12px;font-size:12px;color:#C4B5FD;}
+
+/* LOADING */
+#screen-loading{background:radial-gradient(ellipse at 50% 40%,#2D1B5E,var(--bg1) 70%);align-items:center;justify-content:center;gap:22px;padding-bottom:68px;}
+.ld-orb{width:150px;height:150px;border-radius:50%;position:relative;display:flex;align-items:center;justify-content:center;}
+.ld-orb::before,.ld-orb::after{content:'';position:absolute;inset:0;border-radius:50%;border:3px solid transparent;}
+.ld-orb::before{border-top-color:var(--my);border-right-color:var(--my);animation:spin 1.2s linear infinite;}
+.ld-orb::after{inset:11px;border-bottom-color:var(--mp);border-left-color:var(--mp);animation:spin .8s linear infinite reverse;}
+@keyframes spin{to{transform:rotate(360deg)}}
+.orb-core{width:104px;height:104px;border-radius:50%;background:radial-gradient(circle,#A78BFA,#7C3AED);display:flex;align-items:center;justify-content:center;font-size:42px;animation:floatY 2s ease-in-out infinite;box-shadow:0 0 28px rgba(124,58,237,.7);}
+@keyframes floatY{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+.ld-stars{position:relative;width:260px;height:50px;}
+.mstar{position:absolute;font-size:18px;animation:mstar-anim 1.8s ease-in-out infinite;}
+@keyframes mstar-anim{0%{opacity:0;transform:scale(.3) rotate(0)}40%{opacity:1;transform:scale(1.2) rotate(180deg)}100%{opacity:0;transform:scale(.4) rotate(360deg) translateY(-18px)}}
+.ld-text{font-size:17px;font-weight:900;color:var(--tb);text-align:center;}
+.ld-sub{font-size:12px;color:var(--tm);text-align:center;animation:blink 1.4s ease-in-out infinite;}
+@keyframes blink{0%,100%{opacity:.5}50%{opacity:1}}
+
+/* GRAPH */
+#screen-graph{background:radial-gradient(ellipse at 50% 20%,#2D1B5E,var(--bg1) 70%);padding-bottom:68px;}
+.graph-header{padding:14px 16px 8px;flex-shrink:0;}
+.graph-title{font-size:13px;font-weight:700;color:var(--my);letter-spacing:.1em;text-transform:uppercase;margin-bottom:2px;}
+.graph-sub{font-size:11px;color:var(--tm);}
+.graph-pip-row{display:flex;gap:6px;align-items:center;margin-top:8px;}
+.node-pip{width:10px;height:10px;border-radius:50%;border:1.5px solid rgba(255,255,255,.2);transition:all .4s;}
+.node-pip.lit{background:var(--my);border-color:var(--my);box-shadow:0 0 6px rgba(245,158,11,.7);}
+.graph-canvas-wrap{flex:1;display:flex;align-items:center;justify-content:center;min-height:0;}
+.gnode{cursor:pointer;transition:filter .2s;}
+.gnode:hover{filter:brightness(1.15);}
+.gnode.locked{filter:grayscale(.7) brightness(.55);}
+.center-ring{animation:cr 3s ease-in-out infinite;}
+@keyframes cr{0%,100%{r:52}50%{r:56}}
+.branch-float{animation:bf 4s ease-in-out infinite;}
+@keyframes bf{0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}}
+.pulse-line{stroke-dasharray:6 4;animation:dl 2s linear infinite;}
+@keyframes dl{to{stroke-dashoffset:-20}}
+
+/* MODALS */
+.modal-overlay{position:absolute;inset:0;background:rgba(0,0,0,.75);z-index:50;display:flex;align-items:flex-end;justify-content:center;padding-bottom:68px;}
+.modal-overlay.hidden{display:none;}
+.modal-sheet{width:100%;background:linear-gradient(180deg,#2A1855,#1A0F3A);border-radius:24px 24px 0 0;border:1px solid rgba(212,175,55,.35);border-bottom:none;overflow-y:auto;max-height:86%;animation:su .38s cubic-bezier(.25,.46,.45,.94);}
+@keyframes su{from{transform:translateY(100%)}to{transform:translateY(0)}}
+.modal-handle{width:40px;height:4px;background:rgba(255,255,255,.2);border-radius:2px;margin:10px auto 0;}
+.modal-inner{padding:12px 16px 20px;}
+.modal-header-row{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:10px;}
+.modal-title{font-size:15px;font-weight:900;color:#F3E8FF;flex:1;}
+.modal-rarity{background:linear-gradient(135deg,#D97706,#F59E0B,#FDE68A);color:#78350F;font-size:11px;font-weight:900;padding:3px 9px;border-radius:12px;white-space:nowrap;}
+.modal-image{width:100%;height:155px;border-radius:14px;display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden;margin-bottom:10px;}
+.img-glow{position:absolute;width:120px;height:120px;border-radius:50%;animation:gp 2.5s ease-in-out infinite;}
+@keyframes gp{0%,100%{transform:scale(.9);opacity:.6}50%{transform:scale(1.2);opacity:1}}
+.modal-quote{padding:8px 12px;font-size:12px;line-height:1.65;border-radius:10px;margin-bottom:10px;}
+.stats-lbl{font-size:10px;font-weight:700;color:var(--tm);letter-spacing:.08em;text-transform:uppercase;margin-bottom:7px;}
+.stats-grid{display:grid;grid-template-columns:1fr 1fr;gap:5px;margin-bottom:12px;}
+.srow{display:flex;align-items:center;gap:5px;}
+.sname{font-size:10px;color:var(--tm);min-width:44px;}
+.strack{flex:1;height:5px;border-radius:3px;background:rgba(255,255,255,.1);}
+.sfill{height:100%;border-radius:3px;animation:bgr .9s cubic-bezier(.25,.46,.45,.94) both;}
+@keyframes bgr{from{width:0}}
+.sval{font-size:10px;font-weight:700;color:var(--tb);min-width:20px;text-align:right;}
+.orig-row{display:flex;align-items:center;gap:10px;padding:8px 10px;background:rgba(255,255,255,.04);border-radius:10px;border:1px solid rgba(255,255,255,.08);margin-bottom:10px;}
+.orig-thumb{width:44px;height:44px;border-radius:8px;background:linear-gradient(135deg,#064E3B,#065F46);display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;}
+.orig-info{flex:1;}
+.orig-lbl{font-size:10px;color:var(--tm);font-weight:700;}
+.orig-name{font-size:12px;color:var(--tb);font-weight:700;margin-top:1px;}
+.orig-toggle{font-size:10px;color:var(--sb);font-weight:700;cursor:pointer;border:1px solid rgba(14,165,233,.3);padding:2px 8px;border-radius:8px;}
+
+/* HINT */
+.hint-sheet{padding:16px;}
+.hint-icon{font-size:48px;text-align:center;margin-bottom:10px;animation:floatY 3s ease-in-out infinite;}
+.hint-title{font-size:16px;font-weight:900;color:var(--my);text-align:center;margin-bottom:6px;}
+.hint-lock-badge{display:inline-flex;align-items:center;gap:5px;background:rgba(239,68,68,.15);border:1px solid rgba(239,68,68,.3);color:#FCA5A5;font-size:11px;font-weight:700;padding:3px 10px;border-radius:10px;margin:0 auto 12px;width:fit-content;}
+.hint-text{font-size:13px;color:#C4B5FD;line-height:1.7;text-align:center;padding:10px 14px;background:rgba(124,58,237,.1);border-radius:12px;border:1px solid rgba(124,58,237,.2);margin-bottom:12px;}
+.hint-clue-lbl{font-size:10px;font-weight:700;color:var(--tm);text-align:center;letter-spacing:.08em;text-transform:uppercase;margin-bottom:6px;}
+.hint-clue{display:flex;gap:8px;justify-content:center;margin-bottom:16px;flex-wrap:wrap;}
+.clue-chip{background:rgba(245,158,11,.12);border:1px solid rgba(245,158,11,.3);border-radius:16px;padding:4px 12px;font-size:12px;color:#FCD34D;font-weight:700;}
+
+/* XP REWARD */
+#screen-xp{background:radial-gradient(ellipse at 50% 30%,#2D1B5E,var(--bg1) 70%);align-items:center;justify-content:center;padding-bottom:68px;}
+.xp-reward-icon{font-size:68px;animation:floatY 3s ease-in-out infinite;margin-bottom:8px;}
+.xp-reward-title{font-size:22px;font-weight:900;color:var(--my);text-align:center;margin-bottom:4px;}
+.xp-reward-sub{font-size:13px;color:var(--tm);text-align:center;margin-bottom:18px;padding:0 24px;}
+.xp-reward-box{width:calc(100% - 48px);background:rgba(124,58,237,.15);border:1px solid rgba(124,58,237,.35);border-radius:18px;padding:14px;margin-bottom:14px;}
+.xp-reward-row{display:flex;align-items:center;justify-content:space-between;padding:5px 0;border-bottom:1px solid rgba(255,255,255,.06);}
+.xp-reward-row:last-child{border-bottom:none;}
+.xpr-label{font-size:13px;color:var(--tm);}
+.xpr-val{font-size:14px;font-weight:900;color:var(--my);}
+.xp-total-row{display:flex;align-items:center;justify-content:space-between;padding:10px 16px;background:rgba(245,158,11,.1);border:1px solid rgba(245,158,11,.3);border-radius:14px;margin-bottom:20px;width:calc(100% - 48px);}
+.xp-total-label{font-size:14px;color:var(--my);font-weight:800;}
+.xp-total-val{font-size:20px;font-weight:900;color:var(--my);}
+.xp-cta-wrap{width:calc(100% - 48px);}
+
+/* GALLERY */
+#screen-gallery{background:var(--bg1);padding-bottom:68px;}
+.gallery-header{padding:14px 16px 10px;background:linear-gradient(180deg,#1A1135,transparent);flex-shrink:0;}
+.gallery-title{font-size:18px;font-weight:900;color:var(--tb);margin-bottom:10px;}
+.prog-label{display:flex;justify-content:space-between;font-size:11px;color:var(--tm);margin-bottom:5px;}
+.prog-label span:last-child{color:var(--my);font-weight:700;}
+.prog-track{height:7px;background:rgba(255,255,255,.08);border-radius:4px;overflow:hidden;}
+.prog-fill{height:100%;background:linear-gradient(90deg,var(--mp),var(--my));border-radius:4px;transition:width 1s ease;}
+.gallery-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;padding:12px 16px 16px;}
+.gcrd{border-radius:16px;overflow:hidden;aspect-ratio:3/4;position:relative;cursor:pointer;transition:transform .2s;}
+.gcrd:hover{transform:scale(1.03);}
+.gcrd.unlocked{background:linear-gradient(145deg,#2A1855,#1A0F3A);border:2px solid rgba(212,175,55,.5);box-shadow:0 4px 18px rgba(124,58,237,.3);}
+.gcrd.locked{background:linear-gradient(145deg,#1A1135,#0F0A1E);border:2px solid rgba(255,255,255,.05);}
+.gcrd-inner{width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:7px;}
+.gcrd-emoji{font-size:50px;}
+.gcrd-name{font-size:10px;font-weight:800;color:#F3E8FF;text-align:center;padding:0 6px;line-height:1.3;}
+.gcrd-rarity{font-size:10px;color:var(--my);font-weight:700;}
+.gcrd-lock{font-size:26px;opacity:.14;}
+.gcrd-lock-txt{font-size:10px;color:rgba(255,255,255,.18);font-weight:700;}
+.shimmer-ov{position:absolute;inset:0;background:linear-gradient(105deg,transparent 40%,rgba(255,255,255,.04) 50%,transparent 60%);animation:shimmer 4s infinite;pointer-events:none;}
+@keyframes shimmer{0%{transform:translateX(-100%)}100%{transform:translateX(200%)}}
+.new-badge{position:absolute;top:7px;right:7px;background:var(--hp);color:white;font-size:9px;font-weight:900;padding:2px 7px;border-radius:9px;animation:bpulse 1.5s ease-in-out infinite;}
+@keyframes bpulse{0%,100%{transform:scale(1)}50%{transform:scale(1.12)}}
+.orig-badge{position:absolute;bottom:7px;left:7px;background:rgba(14,165,233,.2);border:1px solid rgba(14,165,233,.4);color:#7DD3FC;font-size:9px;font-weight:700;padding:2px 7px;border-radius:8px;}
+
+/* LEADERBOARD */
+#screen-leaderboard{background:var(--bg1);padding-bottom:68px;}
+.lb-hdr{padding:16px 16px 12px;background:linear-gradient(180deg,#1A1135,transparent);text-align:center;flex-shrink:0;}
+.lb-title{font-size:18px;font-weight:900;color:var(--tb);margin-bottom:3px;}
+.lb-sub{font-size:12px;color:var(--tm);}
+.lb-podium{display:flex;align-items:flex-end;justify-content:center;gap:10px;padding:0 16px 20px;flex-shrink:0;}
+.pi{display:flex;flex-direction:column;align-items:center;gap:6px;flex:1;}
+.pi-avatar{width:46px;height:46px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:22px;border:3px solid transparent;}
+.pi.r1 .pi-avatar{border-color:#F59E0B;width:56px;height:56px;}
+.pi.r2 .pi-avatar{border-color:#94A3B8;}
+.pi.r3 .pi-avatar{border-color:#CD7C3E;}
+.pi-name{font-size:11px;color:var(--tm);font-weight:700;text-align:center;}
+.pi-xp{font-size:12px;color:var(--tb);font-weight:900;}
+.pi-medals{font-size:12px;min-height:18px;text-align:center;}
+.pi-crown{font-size:18px;}
+.pi-block{width:100%;border-radius:8px 8px 0 0;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:900;color:rgba(255,255,255,.4);}
+.pi.r1 .pi-block{height:64px;background:linear-gradient(135deg,#92400E,#D97706);}
+.pi.r2 .pi-block{height:46px;background:linear-gradient(135deg,#374151,#6B7280);}
+.pi.r3 .pi-block{height:32px;background:linear-gradient(135deg,#7C2D12,#CD7C3E);}
+.lb-list{padding:0 16px;display:flex;flex-direction:column;gap:7px;}
+.lb-item{display:flex;align-items:center;gap:10px;padding:10px 13px;border-radius:13px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.05);}
+.lb-item.me{background:rgba(124,58,237,.14);border-color:rgba(124,58,237,.38);}
+.lb-rank{font-size:15px;font-weight:900;color:var(--tm);min-width:22px;text-align:center;}
+.lb-av{font-size:26px;}
+.lb-info{flex:1;}
+.lb-name{font-size:13px;font-weight:800;color:var(--tb);}
+.lb-xp-line{font-size:11px;color:var(--tm);margin-top:1px;}
+.lb-medals-cell{font-size:14px;}
+.lb-xp-big{font-size:15px;font-weight:900;color:var(--my);}
+.me-tag{font-size:9px;background:var(--mp);color:white;padding:1px 7px;border-radius:7px;font-weight:700;}
+
+/* NAV */
+.bottom-nav{position:absolute;bottom:0;left:0;right:0;height:68px;background:rgba(15,10,30,.96);backdrop-filter:blur(20px);border-top:1px solid rgba(124,58,237,.22);display:flex;align-items:center;z-index:100;border-radius:0 0 28px 28px;flex-shrink:0;}
+.nav-btn{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;cursor:pointer;padding:7px 4px;border:none;background:transparent;-webkit-tap-highlight-color:transparent;transition:transform .15s;}
+.nav-btn:active{transform:scale(.88);}
+.nav-ico{font-size:20px;line-height:1;}
+.nav-lbl{font-size:9px;font-weight:800;font-family:'Nunito',sans-serif;}
+.nav-btn.active .nav-lbl{color:var(--my);}
+.nav-btn:not(.active) .nav-lbl{color:var(--tm);}
+.nav-btn.active .nav-ico{filter:drop-shadow(0 0 5px rgba(245,158,11,.8));}
+.nav-center-btn{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;cursor:pointer;border:none;background:transparent;}
+.nav-center-orb{width:50px;height:50px;border-radius:50%;background:linear-gradient(135deg,#7C3AED,#A855F7);display:flex;align-items:center;justify-content:center;font-size:22px;margin-top:-18px;box-shadow:0 0 18px rgba(124,58,237,.7);border:3px solid rgba(15,10,30,.92);transition:transform .15s;position:relative;}
+.nav-center-btn:active .nav-center-orb{transform:scale(.9);}
+.nav-center-btn.active .nav-center-orb{background:linear-gradient(135deg,#F59E0B,#FCD34D);box-shadow:0 0 18px rgba(245,158,11,.7);}
+.nav-center-btn .nav-lbl{font-size:9px;font-weight:800;font-family:'Nunito',sans-serif;}
+.nav-center-btn.active .nav-lbl{color:var(--my);}
+.nav-center-btn:not(.active) .nav-lbl{color:var(--tm);}
+.nav-badge{position:absolute;top:-3px;right:-3px;width:16px;height:16px;border-radius:50%;background:var(--hp);color:white;font-size:9px;font-weight:900;display:flex;align-items:center;justify-content:center;}
+
+/* FEEDBACK FAB */
+.feedback-fab{position:absolute;bottom:80px;right:14px;width:40px;height:40px;border-radius:50%;background:rgba(26,17,53,.92);border:1.5px solid rgba(124,58,237,.5);box-shadow:0 4px 16px rgba(0,0,0,.4);display:flex;align-items:center;justify-content:center;font-size:17px;cursor:pointer;z-index:90;transition:transform .2s,box-shadow .2s;backdrop-filter:blur(8px);}
+.feedback-fab:hover{transform:scale(1.12);box-shadow:0 6px 22px rgba(124,58,237,.5);}
+.feedback-fab:active{transform:scale(.94);}
+
+/* FEEDBACK MODAL */
+.fb-overlay{position:absolute;inset:0;background:rgba(0,0,0,.82);z-index:200;display:flex;align-items:center;justify-content:center;padding:20px;animation:fdin .22s ease;}
+@keyframes fdin{from{opacity:0}to{opacity:1}}
+.fb-overlay.hidden{display:none;}
+.fb-modal{width:100%;background:linear-gradient(160deg,#2A1855,#1A0F3A);border-radius:22px;border:1px solid rgba(124,58,237,.45);overflow:hidden;animation:mpop .32s cubic-bezier(.175,.885,.32,1.275);}
+@keyframes mpop{from{opacity:0;transform:scale(.88)}to{opacity:1;transform:scale(1)}}
+.fb-hdr{padding:14px 16px 12px;background:linear-gradient(135deg,rgba(124,58,237,.2),rgba(212,175,55,.08));border-bottom:1px solid rgba(255,255,255,.07);display:flex;align-items:center;gap:10px;}
+.fb-hdr-icon{font-size:24px;}
+.fb-hdr-title{font-size:15px;font-weight:900;color:var(--tb);flex:1;}
+.fb-close-btn{width:28px;height:28px;border-radius:50%;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);color:rgba(255,255,255,.5);font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .2s;}
+.fb-close-btn:hover{background:rgba(255,255,255,.16);color:var(--tb);}
+.fb-body{padding:14px 16px 16px;}
+.fb-section-lbl{font-size:10px;font-weight:700;color:var(--tm);letter-spacing:.08em;text-transform:uppercase;margin-bottom:8px;}
+.fb-cats{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px;}
+.fb-cat{padding:9px 10px;border-radius:12px;background-color:#ffffff !important;color:#000000 !important;border:2px solid #000000 !important;font-family:'Nunito','Noto Sans SC',sans-serif;font-size:12px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:5px;transition:background-color .25s ease,color .25s ease,transform .12s;text-align:center;line-height:1.3;}
+.fb-cat:hover{background-color:#000000 !important;color:#ffffff !important;}
+.fb-cat:active{transform:scale(.96);}
+.fb-cat.selected{border-color:#7C3AED !important;box-shadow:0 0 0 2px rgba(124,58,237,.35);}
+.fb-stars{display:flex;gap:6px;margin-bottom:14px;}
+.fb-star{font-size:26px;cursor:pointer;transition:transform .15s;filter:grayscale(.9) brightness(.6);line-height:1;}
+.fb-star:hover,.fb-star.active{filter:none;transform:scale(1.18);}
+.fb-textarea{width:100%;padding:10px 12px;border-radius:12px;background:rgba(255,255,255,.05);border:1.5px solid rgba(255,255,255,.1);color:var(--tb);font-family:'Nunito','Noto Sans SC',sans-serif;font-size:13px;line-height:1.6;resize:none;height:80px;outline:none;transition:border-color .2s;margin-bottom:12px;}
+.fb-textarea::placeholder{color:rgba(255,255,255,.25);}
+.fb-textarea:focus{border-color:rgba(124,58,237,.55);}
+.fb-attach-row{display:flex;align-items:center;gap:10px;padding:9px 11px;background:rgba(255,255,255,.04);border-radius:10px;border:1px solid rgba(255,255,255,.07);margin-bottom:14px;cursor:pointer;}
+.fb-attach-icon{font-size:18px;}
+.fb-attach-text{flex:1;font-size:12px;color:var(--tm);font-weight:700;}
+.fb-toggle{width:34px;height:20px;border-radius:10px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.15);position:relative;transition:background .2s;}
+.fb-toggle.on{background:var(--mp);}
+.fb-toggle-knob{position:absolute;top:2px;left:2px;width:14px;height:14px;border-radius:50%;background:#fff;transition:left .2s;}
+.fb-toggle.on .fb-toggle-knob{left:16px;}
+.fb-submit-row{display:flex;gap:8px;}
+.fb-success{padding:18px 16px;text-align:center;display:none;}
+.fb-success.show{display:block;}
+.fb-success-icon{font-size:50px;animation:floatY 3s ease-in-out infinite;margin-bottom:10px;}
+.fb-success-title{font-size:16px;font-weight:900;color:var(--my);margin-bottom:6px;}
+.fb-success-sub{font-size:12px;color:var(--tm);line-height:1.6;margin-bottom:16px;}
+
+.confetti-piece{position:absolute;z-index:201;animation:cf 1.6s ease-in forwards;}
+@keyframes cf{0%{opacity:1;transform:translateY(0) rotate(0)}100%{opacity:0;transform:translateY(320px) rotate(800deg)}}
+.unlock-flash{position:absolute;inset:0;background:rgba(245,158,11,.08);pointer-events:none;animation:ufl .6s ease forwards;z-index:99;}
+@keyframes ufl{0%{opacity:1}100%{opacity:0}}
+</style>
+
+<div id="app">
+<div class="stars-bg" id="stars"></div>
+
+<!-- XP STRIP -->
+<div class="xp-strip">
+  <div class="xp-row">
+    <div class="xp-avatar" id="xpAvatar">🐣</div>
+    <div class="xp-info">
+      <div class="xp-top">
+        <span class="xp-level" id="xpLevel">Lv.1 初级探索者</span>
+        <span class="xp-pts" id="xpPts">0 / 500 XP</span>
+      </div>
+      <div class="xp-track"><div class="xp-fill" id="xpFill" style="width:0%"></div></div>
+    </div>
+    <div class="xp-medals" id="xpMedals"></div>
+  </div>
+</div>
+
+<!-- SCANNER — three-part layout: [spacer] [centre content] [recent finds] -->
+<div id="screen-scan" class="screen active">
+  <!-- centre content -->
+  <div class="scan-main">
+    <div class="scan-title">发现新事物！<br>点击施展魔法 ✨</div>
+    <div class="scan-hint-text">对准任何物体，开始探索知识图谱</div>
+    <div class="scan-ring-outer">
+      <div class="scan-btn" onclick="startScan()"><div class="scan-icon">📷</div></div>
+    </div>
+    <div class="scan-tap-hint">点击相机按钮，开始你的冒险</div>
+  </div>
+  <!-- recent finds pinned at bottom -->
+  <div class="recent-finds">
+    <div class="recent-label">最近发现</div>
+    <div class="chips">
+      <div class="chip">🐦 叽叽麻雀</div>
+      <div class="chip">🌸 樱花</div>
+      <div class="chip">🪨 神奇石头</div>
+    </div>
+  </div>
+</div>
+
+<!-- LOADING -->
+<div id="screen-loading" class="screen">
+  <div class="ld-orb"><div class="orb-core">🔮</div></div>
+  <div class="ld-stars" id="ldStars"></div>
+  <div class="ld-text" id="ldText">AI 魔法精灵正在识别中...</div>
+  <div class="ld-sub">✨ 知识图谱生成中 ✨</div>
+</div>
+
+<!-- GRAPH -->
+<div id="screen-graph" class="screen">
+  <div class="graph-header">
+    <div class="graph-title">🗺 知识图谱</div>
+    <div class="graph-sub">叽叽喳喳的小麻雀 · 点击节点探索</div>
+    <div class="graph-pip-row" id="graphPips"></div>
+  </div>
+  <div class="graph-canvas-wrap">
+    <svg id="graphSvg" width="320" height="310" viewBox="0 0 320 310"></svg>
+  </div>
+</div>
+
+<!-- GALLERY -->
+<div id="screen-gallery" class="screen">
+  <div class="gallery-header">
+    <div class="gallery-title">🗂 图鉴馆</div>
+    <div class="prog-label"><span>探索进度</span><span id="galProg">0 / 50</span></div>
+    <div class="prog-track"><div class="prog-fill" id="galFill" style="width:0%"></div></div>
+  </div>
+  <div class="screen-scroll"><div class="gallery-grid" id="galGrid"></div></div>
+</div>
+
+<!-- LEADERBOARD -->
+<div id="screen-leaderboard" class="screen">
+  <div class="lb-hdr"><div class="lb-title">🏆 星章榜</div><div class="lb-sub">本周好友 · 按总经验值排行</div></div>
+  <div class="lb-podium">
+    <div class="pi r2"><div class="pi-avatar" style="background:#374151">🐼</div><div class="pi-name">熊猫宝宝</div><div class="pi-xp">4200 XP</div><div class="pi-medals">🥈</div><div class="pi-block">2</div></div>
+    <div class="pi r1"><div class="pi-crown">👑</div><div class="pi-avatar" style="background:#92400E">🦁</div><div class="pi-name">小狮王</div><div class="pi-xp">8750 XP</div><div class="pi-medals">🏅🌟</div><div class="pi-block">1</div></div>
+    <div class="pi r3"><div class="pi-avatar" style="background:#7C2D12">🐰</div><div class="pi-name">我</div><div class="pi-xp" id="myXpPodium">0 XP</div><div class="pi-medals" id="myMedalsPodium">—</div><div class="pi-block">3</div></div>
+  </div>
+  <div class="screen-scroll"><div class="lb-list">
+    <div class="lb-item me"><div class="lb-rank" style="color:#F59E0B">3</div><div class="lb-av">🐰</div><div class="lb-info"><div class="lb-name">我 <span class="me-tag">ME</span></div><div class="lb-xp-line" id="myXpLine">Lv.1 · 0 XP</div></div><div class="lb-medals-cell" id="myMedalsCell">—</div><div class="lb-xp-big" id="myXpBig">0</div></div>
+    <div class="lb-item"><div class="lb-rank">4</div><div class="lb-av">🦊</div><div class="lb-info"><div class="lb-name">小狐探险家</div><div class="lb-xp-line">Lv.8 · 2100 XP</div></div><div class="lb-medals-cell">🥉</div><div class="lb-xp-big">2100</div></div>
+    <div class="lb-item"><div class="lb-rank">5</div><div class="lb-av">🐬</div><div class="lb-info"><div class="lb-name">海豚妹妹</div><div class="lb-xp-line">Lv.5 · 1400 XP</div></div><div class="lb-medals-cell"></div><div class="lb-xp-big">1400</div></div>
+    <div class="lb-item"><div class="lb-rank">6</div><div class="lb-av">🐸</div><div class="lb-info"><div class="lb-name">跳跳蛙蛙</div><div class="lb-xp-line">Lv.3 · 800 XP</div></div><div class="lb-medals-cell"></div><div class="lb-xp-big">800</div></div>
+  </div></div>
+</div>
+
+<!-- XP REWARD -->
+<div id="screen-xp" class="screen">
+  <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:0 24px 68px;">
+    <div class="xp-reward-icon" id="xpRewardIcon">⭐</div>
+    <div class="xp-reward-title" id="xpRewardTitle">卡牌收集！</div>
+    <div class="xp-reward-sub" id="xpRewardSub">成功解锁一个知识节点</div>
+    <div class="xp-reward-box" id="xpRewardBox"></div>
+    <div class="xp-total-row"><span class="xp-total-label">总经验值</span><span class="xp-total-val" id="xpTotalDisplay">0 XP</span></div>
+    <div class="xp-cta-wrap"><button class="btn" id="continueBtn" onclick="afterXpReward()">继续探索 →</button></div>
+  </div>
+</div>
+
+<!-- CARD MODAL -->
+<div class="modal-overlay hidden" id="cardModal">
+  <div class="modal-sheet"><div class="modal-handle"></div><div class="modal-inner" id="cardModalInner"></div></div>
+</div>
+
+<!-- HINT MODAL -->
+<div class="modal-overlay hidden" id="hintModal">
+  <div class="modal-sheet"><div class="modal-handle"></div><div class="hint-sheet" id="hintModalInner"></div></div>
+</div>
+
+<!-- FEEDBACK FAB -->
+<button class="feedback-fab" onclick="openFeedback()" title="反馈问题">💬</button>
+
+<!-- FEEDBACK MODAL -->
+<div class="fb-overlay hidden" id="fbOverlay">
+  <div class="fb-modal">
+    <div class="fb-hdr">
+      <div class="fb-hdr-icon">💬</div>
+      <div class="fb-hdr-title">反馈与建议</div>
+      <button class="fb-close-btn" onclick="closeFeedback()">✕</button>
+    </div>
+    <div id="fbBody" class="fb-body">
+      <div class="fb-section-lbl">问题类型</div>
+      <div class="fb-cats">
+        <button class="fb-cat" onclick="selCat(this)">🤖 AI识别有误</button>
+        <button class="fb-cat" onclick="selCat(this)">📷 拍照模糊</button>
+        <button class="fb-cat" onclick="selCat(this)">📝 信息错误</button>
+        <button class="fb-cat" onclick="selCat(this)">🐛 功能异常</button>
+        <button class="fb-cat" onclick="selCat(this)">💡 改进建议</button>
+        <button class="fb-cat" onclick="selCat(this)">✨ 其他</button>
+      </div>
+      <div class="fb-section-lbl">体验评分</div>
+      <div class="fb-stars">
+        <span class="fb-star" onclick="setRating(1)">⭐</span>
+        <span class="fb-star" onclick="setRating(2)">⭐</span>
+        <span class="fb-star" onclick="setRating(3)">⭐</span>
+        <span class="fb-star" onclick="setRating(4)">⭐</span>
+        <span class="fb-star" onclick="setRating(5)">⭐</span>
+      </div>
+      <div class="fb-section-lbl">详细描述（选填）</div>
+      <textarea class="fb-textarea" id="fbText" placeholder="请描述你遇到的问题，或者给我们提出宝贵建议…"></textarea>
+      <div class="fb-attach-row" onclick="toggleAttach()">
+        <div class="fb-attach-icon">📸</div>
+        <div class="fb-attach-text">附上当前截图</div>
+        <div class="fb-toggle" id="fbToggle"><div class="fb-toggle-knob"></div></div>
+      </div>
+      <div class="fb-submit-row">
+        <button class="btn" id="fbSubmitBtn" onclick="submitFeedback()">发送反馈 ✉️</button>
+        <button class="btn ghost sm" style="width:auto;padding:10px 16px;flex-shrink:0" onclick="closeFeedback()">取消</button>
+      </div>
+    </div>
+    <div class="fb-success" id="fbSuccess">
+      <div class="fb-success-icon">🎉</div>
+      <div class="fb-success-title">感谢你的反馈！</div>
+      <div class="fb-success-sub">我们已收到你的报告，团队将认真处理每一条反馈，持续改进 QQ 奇妙图鉴 ✨</div>
+      <button class="btn" id="fbDoneBtn" onclick="closeFeedback()">好的，继续探索 →</button>
+    </div>
+  </div>
+</div>
+
+<!-- NAV -->
+<nav class="bottom-nav">
+  <button class="nav-btn active" id="nav-scan" onclick="switchTab('scan')"><span class="nav-ico">🔮</span><span class="nav-lbl">魔法镜</span></button>
+  <button class="nav-center-btn" id="nav-graph" onclick="switchTab('graph')">
+    <div class="nav-center-orb">🗺<span class="nav-badge" id="navBadge">0</span></div>
+    <span class="nav-lbl">图谱</span>
+  </button>
+  <button class="nav-btn" id="nav-gallery" onclick="switchTab('gallery')"><span class="nav-ico">📖</span><span class="nav-lbl">图鉴馆</span></button>
+  <button class="nav-btn" id="nav-leaderboard" onclick="switchTab('leaderboard')"><span class="nav-ico">🏆</span><span class="nav-lbl">星章榜</span></button>
+</nav>
+</div>
+
+<script>
+const S={totalXP:0,medals:[],unlockedNodes:{center:true,diet:false,habitat:false,predators:false,species:false},collectedCards:[],attachOn:false};
+const LEVELS=[{min:0,max:499,lv:1,title:'初级探索者',av:'🐣'},{min:500,max:1199,lv:2,title:'自然侦探',av:'🐥'},{min:1200,max:2499,lv:3,title:'知识猎人',av:'🦅'},{min:2500,max:4999,lv:4,title:'图鉴大师',av:'🦉'},{min:5000,max:99999,lv:5,title:'传说博物学家',av:'🌟'}];
+const NODES={
+  center:{id:'center',label:'基础档案',emoji:'🐦',color:'#7C3AED',tagColor:'rgba(124,58,237,.3)',tagText:'#C4B5FD',rarity:'SSR',imageBg:'linear-gradient(135deg,#1E1040,#2D1B5E)',imageGlow:'rgba(124,58,237,.3)',imageScene:null,quote:'啾啾！虽然我个子小，但我可是杂食大胃王哦！千万别惹我！',stats:[{name:'攻击力',val:45,pct:45,grad:'#EF4444,#F97316'},{name:'卖萌度',val:92,pct:92,grad:'#EC4899,#F472B6'},{name:'稀有度',val:88,pct:88,grad:'#7C3AED,#A855F7'},{name:'飞行速度',val:76,pct:76,grad:'#0EA5E9,#38BDF8'},{name:'智力',val:63,pct:63,grad:'#10B981,#34D399'}]},
+  diet:{id:'diet',label:'饮食习惯',emoji:'🌾',color:'#10B981',tagColor:'rgba(16,185,129,.2)',tagText:'#A7F3D0',rarity:'R',imageBg:'linear-gradient(135deg,#064E3B,#065F46)',imageGlow:'rgba(16,185,129,.3)',imageScene:['🌾','🐛','🌻'],quote:'我可是个大胃王！最喜欢吃谷物和小昆虫，吃饱了才有力气飞。',stats:[{name:'谷物种子',val:'85%',pct:85,grad:'#D97706,#F59E0B'},{name:'小昆虫',val:'60%',pct:60,grad:'#10B981,#34D399'},{name:'果实浆果',val:'40%',pct:40,grad:'#EC4899,#F472B6'},{name:'面包屑',val:'72%',pct:72,grad:'#F59E0B,#FCD34D'}],hint:{icon:'🐛',title:'饮食之谜',text:'寻找我的能量来源！提示：我会飞的小点心，有六条腿，藏在花草间...',clues:['🌿 草丛','🪲 六条腿','🌸 花丛']}},
+  habitat:{id:'habitat',label:'居住场所',emoji:'🏠',color:'#0EA5E9',tagColor:'rgba(14,165,233,.2)',tagText:'#BAE6FD',rarity:'SR',imageBg:'linear-gradient(135deg,#0C4A6E,#075985)',imageGlow:'rgba(14,165,233,.3)',imageScene:['🏠','🌳','🪹'],quote:'我们喜欢热闹！通常在人类房屋的屋檐下或墙洞里筑巢。',stats:[{name:'城市适应',val:95,pct:95,grad:'#0EA5E9,#38BDF8'},{name:'筑巢技术',val:78,pct:78,grad:'#7C3AED,#A855F7'},{name:'社群活动',val:88,pct:88,grad:'#10B981,#34D399'},{name:'领地意识',val:55,pct:55,grad:'#F59E0B,#FCD34D'}],hint:{icon:'🏚',title:'家在何方',text:'找到我的秘密居所！提示：在某个有屋檐的地方，靠近人类...',clues:['🏘️ 屋檐','🧱 墙洞','🪹 巢穴']}},
+  predators:{id:'predators',label:'天敌预警',emoji:'⚠️',color:'#EF4444',tagColor:'rgba(239,68,68,.2)',tagText:'#FCA5A5',rarity:'SR',imageBg:'linear-gradient(180deg,#0D0721,#1A0A30)',imageGlow:'rgba(239,68,68,.25)',imageScene:['🦅','🐍','🐱'],quote:'警报！我们在野外要时刻提防老鹰和蛇，在城里要躲避调皮的猫咪！',stats:[{name:'老鹰',val:92,pct:92,grad:'#DC2626,#EF4444'},{name:'猫咪',val:75,pct:75,grad:'#EA580C,#F97316'},{name:'蛇类',val:80,pct:80,grad:'#16A34A,#22C55E'},{name:'逃脱速度',val:88,pct:88,grad:'#7C3AED,#A855F7'}],hint:{icon:'🦅',title:'天敌追踪',text:'发现潜伏的威胁！提示：天空中盘旋的猎手，或者窗台上打盹的毛茸茸...',clues:['☁️ 天空','🪶 猎禽','😺 猫咪']}},
+  species:{id:'species',label:'家族百科',emoji:'📚',color:'#A855F7',tagColor:'rgba(167,139,250,.2)',tagText:'#DDD6FE',rarity:'SSR',imageBg:'linear-gradient(135deg,#2E1065,#4C1D95)',imageGlow:'rgba(168,85,247,.3)',imageScene:['🐦','🐤','🦜'],quote:'我们家族很大哦！有树麻雀、家麻雀等，你能分辨出我是哪一种吗？',stats:[{name:'树麻雀',val:'最常见',pct:90,grad:'#7C3AED,#A855F7'},{name:'家麻雀',val:'常见',pct:72,grad:'#0EA5E9,#38BDF8'},{name:'山麻雀',val:'较少见',pct:40,grad:'#10B981,#34D399'},{name:'栗树麻雀',val:'稀有',pct:20,grad:'#D97706,#F59E0B'}],hint:{icon:'📖',title:'家族秘密',text:'探索麻雀家族的多样性！提示：看看附近有没有外貌略有不同的同类伙伴...',clues:['🔭 观察','🎨 羽色','🌍 分布']}},
+};
+const NP={center:{x:160,y:155,r:52},diet:{x:160,y:48,r:38},habitat:{x:280,y:155,r:38},predators:{x:160,y:262,r:38},species:{x:40,y:155,r:38}};
+
+function applyBtns(){
+  document.querySelectorAll('.btn:not(.ghost):not(.collected)').forEach(b=>{
+    b.style.backgroundColor='#ffffff';b.style.color='#000000';b.style.borderColor='#000000';
+    b.onmouseenter=()=>{b.style.backgroundColor='#000000';b.style.color='#ffffff';};
+    b.onmouseleave=()=>{b.style.backgroundColor='#ffffff';b.style.color='#000000';};
+  });
+  document.querySelectorAll('.fb-cat').forEach(b=>{
+    b.style.backgroundColor='#ffffff';b.style.color='#000000';b.style.borderColor='#000000';
+    b.onmouseenter=()=>{if(!b._sel){b.style.backgroundColor='#000000';b.style.color='#ffffff';}};
+    b.onmouseleave=()=>{if(!b._sel){b.style.backgroundColor='#ffffff';b.style.color='#000000';}};
+  });
+}
+
+function makeStars(){const c=document.getElementById('stars');for(let i=0;i<50;i++){const s=document.createElement('div');s.className='star';const sz=Math.random()*2.5+.5;s.style.cssText=`width:${sz}px;height:${sz}px;top:${Math.random()*100}%;left:${Math.random()*100}%;animation-delay:${Math.random()*3}s;animation-duration:${2+Math.random()*3}s`;c.appendChild(s);}}
+
+function getLvl(xp){for(const l of LEVELS)if(xp>=l.min&&xp<=l.max)return l;return LEVELS[LEVELS.length-1];}
+function updateXP(){
+  const xp=S.totalXP,lv=getLvl(xp),pct=(xp-lv.min)/(lv.max-lv.min+1)*100;
+  document.getElementById('xpLevel').textContent=`Lv.${lv.lv} ${lv.title}`;
+  document.getElementById('xpPts').textContent=`${xp} / ${lv.max+1} XP`;
+  document.getElementById('xpFill').style.width=pct+'%';
+  document.getElementById('xpAvatar').textContent=lv.av;
+  document.getElementById('xpMedals').innerHTML=S.medals.map(m=>`<span class="medal">${m}</span>`).join('');
+  document.getElementById('myXpPodium').textContent=xp+' XP';
+  document.getElementById('myMedalsPodium').textContent=S.medals.join('')||'—';
+  document.getElementById('myXpLine').textContent=`Lv.${lv.lv} · ${xp} XP`;
+  document.getElementById('myMedalsCell').textContent=S.medals.join('')||'—';
+  document.getElementById('myXpBig').textContent=xp;
+}
+
+function drawGraph(){
+  const svg=document.getElementById('graphSvg');svg.innerHTML='';
+  const defs=document.createElementNS('http://www.w3.org/2000/svg','defs');
+  const rg=document.createElementNS('http://www.w3.org/2000/svg','radialGradient');
+  rg.setAttribute('id','cg');rg.innerHTML='<stop offset="0%" stop-color="#A855F7"/><stop offset="100%" stop-color="#5B21B6"/>';
+  defs.appendChild(rg);
+  defs.innerHTML+=`<filter id="gp" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="5" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>`;
+  svg.appendChild(defs);
+  const cx=NP.center.x,cy=NP.center.y;
+  ['diet','habitat','predators','species'].forEach(id=>{
+    const p=NP[id],nd=NODES[id],ul=S.unlockedNodes[id];
+    const l=document.createElementNS('http://www.w3.org/2000/svg','line');
+    l.setAttribute('x1',cx);l.setAttribute('y1',cy);l.setAttribute('x2',p.x);l.setAttribute('y2',p.y);
+    l.setAttribute('stroke',ul?nd.color:'rgba(255,255,255,0.1)');l.setAttribute('stroke-width',ul?'2':'1');l.setAttribute('stroke-linecap','round');
+    if(ul){l.setAttribute('stroke-dasharray','6 4');l.setAttribute('class','pulse-line');}
+    svg.appendChild(l);
+  });
+  const cg=document.createElementNS('http://www.w3.org/2000/svg','g');cg.setAttribute('class','gnode');cg.onclick=()=>openCard('center');
+  const or=document.createElementNS('http://www.w3.org/2000/svg','circle');or.setAttribute('cx',cx);or.setAttribute('cy',cy);or.setAttribute('r',NP.center.r+10);or.setAttribute('fill','none');or.setAttribute('stroke','rgba(124,58,237,0.3)');or.setAttribute('stroke-width','1.5');or.setAttribute('class','center-ring');cg.appendChild(or);
+  const cc=document.createElementNS('http://www.w3.org/2000/svg','circle');cc.setAttribute('cx',cx);cc.setAttribute('cy',cy);cc.setAttribute('r',NP.center.r);cc.setAttribute('fill','url(#cg)');cc.setAttribute('stroke','rgba(212,175,55,0.7)');cc.setAttribute('stroke-width','2');cc.setAttribute('filter','url(#gp)');cg.appendChild(cc);
+  const ce=document.createElementNS('http://www.w3.org/2000/svg','text');ce.setAttribute('x',cx);ce.setAttribute('y',cy-8);ce.setAttribute('text-anchor','middle');ce.setAttribute('dominant-baseline','central');ce.setAttribute('font-size','28');ce.textContent='🐦';cg.appendChild(ce);
+  const cl=document.createElementNS('http://www.w3.org/2000/svg','text');cl.setAttribute('x',cx);cl.setAttribute('y',cy+20);cl.setAttribute('text-anchor','middle');cl.setAttribute('dominant-baseline','central');cl.setAttribute('font-size','10');cl.setAttribute('fill','#F3E8FF');cl.setAttribute('font-family','Nunito,sans-serif');cl.setAttribute('font-weight','700');cl.textContent='基础档案';cg.appendChild(cl);
+  svg.appendChild(cg);
+  ['diet','habitat','predators','species'].forEach(id=>{
+    const nd=NODES[id],p=NP[id],ul=S.unlockedNodes[id],col=S.collectedCards.includes(id);
+    const ng=document.createElementNS('http://www.w3.org/2000/svg','g');ng.setAttribute('class','gnode branch-float'+(ul?'':' locked'));ng.onclick=()=>ul?openCard(id):openHint(id);
+    const c=document.createElementNS('http://www.w3.org/2000/svg','circle');c.setAttribute('cx',p.x);c.setAttribute('cy',p.y);c.setAttribute('r',p.r);c.setAttribute('fill',ul?nd.color:'#1A1135');c.setAttribute('stroke',ul?nd.color:'rgba(255,255,255,0.15)');c.setAttribute('stroke-width',ul?'2.5':'1.5');if(ul)c.setAttribute('filter','url(#gp)');ng.appendChild(c);
+    const e=document.createElementNS('http://www.w3.org/2000/svg','text');e.setAttribute('x',p.x);e.setAttribute('y',p.y-(ul?8:4));e.setAttribute('text-anchor','middle');e.setAttribute('dominant-baseline','central');e.setAttribute('font-size',ul?'22':'20');e.textContent=ul?nd.emoji:'🔒';ng.appendChild(e);
+    const lb=document.createElementNS('http://www.w3.org/2000/svg','text');lb.setAttribute('x',p.x);lb.setAttribute('y',p.y+(ul?16:14));lb.setAttribute('text-anchor','middle');lb.setAttribute('dominant-baseline','central');lb.setAttribute('font-size','9');lb.setAttribute('fill',ul?'#fff':'rgba(255,255,255,0.35)');lb.setAttribute('font-family','Nunito,sans-serif');lb.setAttribute('font-weight','700');lb.textContent=ul?nd.label:'???';ng.appendChild(lb);
+    if(col){const ck=document.createElementNS('http://www.w3.org/2000/svg','text');ck.setAttribute('x',p.x+p.r-3);ck.setAttribute('y',p.y-p.r+3);ck.setAttribute('text-anchor','middle');ck.setAttribute('dominant-baseline','central');ck.setAttribute('font-size','11');ck.textContent='✅';ng.appendChild(ck);}
+    svg.appendChild(ng);
+  });
+  buildPips();
+}
+function buildPips(){
+  const c=document.getElementById('graphPips');c.innerHTML='';
+  ['center','diet','habitat','predators','species'].forEach(id=>{const d=document.createElement('div');d.className='node-pip'+(S.unlockedNodes[id]?' lit':'');c.appendChild(d);});
+  document.getElementById('navBadge').textContent=S.collectedCards.length;
+}
+
+function startScan(){document.getElementById('ldText').textContent='AI 魔法精灵正在识别中...';showScreen('loading');mkLdStars();setTimeout(()=>{showScreen('graph');drawGraph();switchTab('graph');},3000);}
+function mkLdStars(){const c=document.getElementById('ldStars');c.innerHTML='';const em=['✨','⭐','💫','🌟','✦'];for(let i=0;i<8;i++){const s=document.createElement('div');s.className='mstar';s.textContent=em[i%em.length];s.style.cssText=`left:${10+i*11}%;top:${20+Math.sin(i)*28}%;animation-delay:${i*.22}s;animation-duration:${1.5+Math.random()*.8}s`;c.appendChild(s);}}
+
+function openCard(nodeId){
+  const nd=NODES[nodeId],coll=S.collectedCards.includes(nodeId),isC=(nodeId==='center');
+  let img=nd.imageScene?nd.imageScene.map((e,i)=>`<span style="font-size:${52-i*8}px;animation:floatY 3s ${i*.4}s ease-in-out infinite;display:inline-block">${e}</span>`).join(''):`<span style="font-size:80px;animation:floatY 3s ease-in-out infinite;display:inline-block">${nd.emoji}</span>`;
+  const origRow=isC?`<div class="orig-row"><div class="orig-thumb">🌿</div><div class="orig-info"><div class="orig-lbl">📷 原始照片</div><div class="orig-name">麻雀原片_001.jpg</div></div><div class="orig-toggle" onclick="alert('原片预览：实际场景显示你的真实照片 📸')">查看原片</div></div>`:'';
+  const stats=nd.stats.map(s=>`<div class="srow"><div class="sname">${s.name}</div><div class="strack"><div class="sfill" style="width:${s.pct}%;background:linear-gradient(90deg,${s.grad})"></div></div><div class="sval">${s.val}</div></div>`).join('');
+  document.getElementById('cardModalInner').innerHTML=`
+    <div style="font-size:10px;font-weight:800;padding:3px 10px;border-radius:10px;margin-bottom:6px;display:inline-block;background:${nd.tagColor};color:${nd.tagText};border:1px solid ${nd.color}44">${nd.emoji} ${nd.label}</div>
+    <div class="modal-header-row"><div class="modal-title">叽叽喳喳的小麻雀</div><div class="modal-rarity">⭐ ${nd.rarity} 级</div></div>
+    <div class="modal-image" style="background:${nd.imageBg}"><div class="img-glow" style="background:radial-gradient(circle,${nd.imageGlow},transparent)"></div>${img}</div>
+    <div class="modal-quote" style="background:${nd.tagColor};border:1px solid ${nd.color}44;color:${nd.tagText};font-size:12px;padding:8px 12px;border-radius:10px;margin-bottom:10px;line-height:1.65"><span style="font-size:16px;color:${nd.color};vertical-align:-4px;margin-right:2px">"</span>${nd.quote}</div>
+    ${origRow}
+    <div class="stats-lbl">能力值 / 数据</div><div class="stats-grid">${stats}</div>
+    <button class="btn${coll?' collected':''}" id="collectBtn" onclick="collectCard('${nodeId}')">${coll?'✅ 已收藏':'🎴 收下卡牌！'}</button>
+    <button class="btn ghost sm" style="margin-top:8px" onclick="closeCard()">关闭</button>
+  `;
+  document.getElementById('cardModal').classList.remove('hidden');
+  applyBtns();
+  if(coll){const b=document.getElementById('collectBtn');b.style.backgroundColor='#10B981';b.style.color='#fff';b.style.borderColor='#10B981';b.onmouseenter=null;b.onmouseleave=null;}
+}
+function closeCard(){document.getElementById('cardModal').classList.add('hidden');}
+
+function openHint(nodeId){
+  const h=NODES[nodeId].hint;
+  document.getElementById('hintModalInner').innerHTML=`
+    <div class="hint-icon">${h.icon}</div>
+    <div class="hint-title">${h.title}</div>
+    <div class="hint-lock-badge">🔒 节点锁定中</div>
+    <div class="hint-text">${h.text}</div>
+    <div class="hint-clue-lbl">寻找线索</div>
+    <div class="hint-clue">${h.clues.map(c=>`<div class="clue-chip">${c}</div>`).join('')}</div>
+    <button class="btn" id="huntBtn" onclick="startHunt('${nodeId}')">🔍 开始寻找！</button>
+    <button class="btn ghost sm" style="margin-top:8px" onclick="closeHint()">稍后再来</button>
+  `;
+  document.getElementById('hintModal').classList.remove('hidden');
+  applyBtns();
+}
+function closeHint(){document.getElementById('hintModal').classList.add('hidden');}
+function startHunt(nodeId){closeHint();document.getElementById('ldText').textContent='正在扫描目标...';showScreen('loading');mkLdStars();setTimeout(()=>unlockNode(nodeId),2500);}
+function unlockNode(nodeId){
+  S.unlockedNodes[nodeId]=true;
+  const f=document.createElement('div');f.className='unlock-flash';document.getElementById('app').appendChild(f);setTimeout(()=>f.remove(),800);
+  spawnConfetti();showScreen('graph');drawGraph();switchTab('graph');setTimeout(()=>openCard(nodeId),600);
+}
+
+function collectCard(nodeId){
+  if(S.collectedCards.includes(nodeId))return;
+  S.collectedCards.push(nodeId);
+  const items=[{label:`收集「${NODES[nodeId].label}」`,xp:100}];
+  S.totalXP+=100;
+  const allDone=['center','diet','habitat','predators','species'].every(k=>S.collectedCards.includes(k));
+  let bonus=0;
+  if(allDone&&!S.medals.includes('🏅')){bonus=500;S.medals.push('🏅');items.push({label:'图谱全解锁！大师勋章',xp:500});S.totalXP+=500;}
+  closeCard();showXP(nodeId,items,bonus);drawGraph();buildGallery();updateXP();
+}
+function showXP(nodeId,items,bonus){
+  const nd=NODES[nodeId],ib=bonus>0;
+  document.getElementById('xpRewardIcon').textContent=ib?'🏅':'⭐';
+  document.getElementById('xpRewardTitle').textContent=ib?'图谱全解锁！':'卡牌收集！';
+  document.getElementById('xpRewardSub').textContent=ib?'集齐所有知识节点，获得大师勋章！':`成功收集「${nd.label}」知识卡`;
+  document.getElementById('xpRewardBox').innerHTML=items.map(it=>`<div class="xp-reward-row"><span class="xpr-label">${it.label}</span><span class="xpr-val">+${it.xp} XP</span></div>`).join('');
+  document.getElementById('xpTotalDisplay').textContent=`${S.totalXP} XP`;
+  if(ib)spawnConfetti();showScreen('xp');applyBtns();
+}
+function afterXpReward(){switchTab('graph');}
+
+function buildGallery(){
+  const g=document.getElementById('galGrid');g.innerHTML='';
+  const cards=[{id:'center',emoji:'🐦',name:'叽叽喳喳的小麻雀',rarity:'SSR',orig:true},{id:'diet',emoji:'🌾',name:'饮食大胃王',rarity:'R'},{id:'habitat',emoji:'🏠',name:'城市筑巢者',rarity:'SR'},{id:'predators',emoji:'⚠️',name:'天敌预警录',rarity:'SR'},{id:'species',emoji:'📚',name:'麻雀家族志',rarity:'SSR'},{id:'_l1',emoji:'🌸',name:'樱花精灵',rarity:'UR'},{id:'_l2',emoji:'🦋',name:'蝴蝶仙子',rarity:'UR'}];
+  const n=S.collectedCards.length;
+  document.getElementById('galFill').style.width=(n/50*100)+'%';
+  document.getElementById('galProg').textContent=`${n} / 50`;
+  cards.forEach(c=>{
+    const ul=S.collectedCards.includes(c.id);
+    const d=document.createElement('div');d.className='gcrd '+(ul?'unlocked':'locked');
+    d.innerHTML=ul?`<div class="shimmer-ov"></div><div class="new-badge">NEW</div><div class="gcrd-inner"><div class="gcrd-emoji">${c.emoji}</div><div class="gcrd-name">${c.name}</div><div class="gcrd-rarity">${c.rarity}</div></div>${c.orig?'<div class="orig-badge">📷 原片</div>':''}`:
+      `<div class="gcrd-inner"><div class="gcrd-lock">🔒</div><div class="gcrd-name" style="color:rgba(255,255,255,.12)">???</div><div class="gcrd-lock-txt">待解锁</div></div>`;
+    if(ul&&S.unlockedNodes[c.id]!==undefined)d.onclick=()=>openCard(c.id);
+    g.appendChild(d);
+  });
+}
+
+function openFeedback(){
+  S.attachOn=false;
+  document.querySelectorAll('.fb-cat').forEach(b=>{b.classList.remove('selected');b._sel=false;b.style.backgroundColor='#ffffff';b.style.color='#000000';b.style.borderColor='#000000';});
+  document.querySelectorAll('.fb-star').forEach(s=>s.classList.remove('active'));
+  const ta=document.getElementById('fbText');if(ta)ta.value='';
+  document.getElementById('fbToggle').classList.remove('on');
+  document.getElementById('fbBody').style.display='block';
+  document.getElementById('fbSuccess').classList.remove('show');
+  document.getElementById('fbOverlay').classList.remove('hidden');
+  applyBtns();
+}
+function closeFeedback(){document.getElementById('fbOverlay').classList.add('hidden');}
+function selCat(el){
+  document.querySelectorAll('.fb-cat').forEach(b=>{b.classList.remove('selected');b._sel=false;b.style.backgroundColor='#ffffff';b.style.color='#000000';b.style.borderColor='#000000';});
+  el.classList.add('selected');el._sel=true;
+  el.style.backgroundColor='#ffffff';el.style.color='#000000';el.style.borderColor='#7C3AED';
+}
+function setRating(n){document.querySelectorAll('.fb-star').forEach((s,i)=>s.classList.toggle('active',i<n));}
+function toggleAttach(){S.attachOn=!S.attachOn;document.getElementById('fbToggle').classList.toggle('on',S.attachOn);}
+function submitFeedback(){document.getElementById('fbBody').style.display='none';document.getElementById('fbSuccess').classList.add('show');applyBtns();}
+
+function spawnConfetti(){
+  const app=document.getElementById('app');
+  const cols=['#7C3AED','#F59E0B','#EC4899','#10B981','#0EA5E9','#A855F7','#FCD34D'];
+  for(let i=0;i<36;i++){const p=document.createElement('div');p.className='confetti-piece';const w=6+Math.random()*4;p.style.cssText=`left:${Math.random()*100}%;top:${15+Math.random()*25}%;background:${cols[~~(Math.random()*cols.length)]};border-radius:${Math.random()>.5?'50%':'2px'};animation-delay:${Math.random()*.6}s;width:${w}px;height:${w}px;position:absolute`;app.appendChild(p);setTimeout(()=>p.remove(),2200);}
+}
+
+function showScreen(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));document.getElementById('screen-'+id).classList.add('active');}
+function switchTab(tab){
+  document.querySelectorAll('.nav-btn,.nav-center-btn').forEach(n=>n.classList.remove('active'));
+  const el=document.getElementById('nav-'+tab);if(el)el.classList.add('active');
+  const map={scan:'scan',graph:'graph',gallery:'gallery',leaderboard:'leaderboard'};
+  if(map[tab])showScreen(map[tab]);
+  if(tab==='gallery')buildGallery();
+  if(tab==='graph')drawGraph();
+  document.getElementById('cardModal').classList.add('hidden');
+  document.getElementById('hintModal').classList.add('hidden');
+  applyBtns();
+}
+
+makeStars();buildGallery();updateXP();drawGraph();switchTab('scan');applyBtns();
+</script>
